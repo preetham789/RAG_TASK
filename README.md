@@ -1,12 +1,12 @@
 # Transparent RAG Question Answering
 
-This is a small FastAPI RAG service for the interview task. A user uploads PDF or TXT reference documents, the service chunks and embeds them, stores vectors in a local JSON index, retrieves relevant chunks for a question, and answers only from those chunks.
+This is a small RAG question-answering system. A user uploads PDF or TXT reference documents, the app chunks and embeds them, stores vectors in a local JSON index, retrieves relevant chunks for a question, and answers only from those chunks.
 
 The code avoids black-box RAG frameworks on purpose. The interesting pieces are visible in `app/chunking.py`, `app/embeddings.py`, `app/vector_store.py`, and `app/answering.py`.
 
 ## What Works
 
-- Upload `.txt` and text-based `.pdf` documents.
+- Upload `.txt`, text-based `.pdf`, and scanned/image-only `.pdf` documents.
 - Chunk documents with a configurable character window and overlap.
 - Embed chunks with OpenAI (`text-embedding-3-small` by default) or deterministic local hash embeddings for offline tests.
 - Store vectors locally in `data/vector_store/index.json`.
@@ -16,10 +16,12 @@ The code avoids black-box RAG frameworks on purpose. The interesting pieces are 
 - Return the answer, grounding status, source chunks, scores, and latency metrics.
 - Say `I don't know from the provided documents.` when retrieval is below the configured threshold or the answerer cannot ground the response.
 
-## What Does Not Work Yet
+## Current Limits
 
-- No OCR for scanned PDFs. PDFs must contain extractable text.
-- No frontend, authentication, deployment, or hosted database.
+- OCR quality depends on scan quality.
+- Local OCR needs Tesseract installed on the machine. Without Tesseract, scanned PDF OCR uses Groq when `GROQ_API_KEY` is configured.
+- Large scanned PDFs can be slow or costly because OCR may process every page.
+- No authentication, deployment, or hosted database.
 - No robust citation verifier beyond returning the retrieved chunks and instructing the answerer to cite chunk ids.
 - Retrieval quality was checked with a tiny smoke set, not a full evaluation suite.
 
@@ -67,6 +69,21 @@ Start the Streamlit app:
 
 ```powershell
 streamlit run streamlit_app.py
+```
+
+Open Streamlit at `http://localhost:8501`.
+
+For scanned PDFs, use Groq OCR:
+
+```powershell
+$env:GROQ_API_KEY = "gsk_..."
+$env:RAG_OCR_PROVIDER = "groq"
+```
+
+Or install local Tesseract OCR and use:
+
+```powershell
+$env:RAG_OCR_PROVIDER = "tesseract"
 ```
 
 ## Usage
@@ -140,13 +157,3 @@ pytest
 ```
 
 The tests use local hash embeddings and the extractive answerer so they run without network calls.
-
-## Walkthrough Video Checklist
-
-For the 3-5 minute video:
-
-1. Start the API and upload a new TXT or PDF that is not in this repo.
-2. Ask a question with an answer in the document and show returned chunks.
-3. Ask a question whose answer is absent and show the honest unknown response.
-4. Walk through `app/chunking.py` and `app/rag.py`.
-5. Show `prompts/grounded_answer_prompt.txt` as the prompt used for grounded answering.
