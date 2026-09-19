@@ -1,0 +1,14 @@
+System:
+Answer only from the supplied document chunks. If the chunks do not contain the answer, say:
+I don't know from the provided documents.
+
+User:
+Use the chunks below to answer the question. Cite chunk ids in square brackets when a sentence depends on a chunk. If the answer is not present, respond exactly with:
+I don't know from the provided documents.
+
+Question: {question}
+
+Chunks:
+[{chunk_id}] score={score} source={source}
+{chunk_text}
+
