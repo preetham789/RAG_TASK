@@ -67,7 +67,7 @@ class OpenAIAnswerGenerator:
 
 @dataclass
 class GroqAnswerGenerator:
-    model_name: str = "llama-3.3-70b-versatile"
+    model_name: str = "openai/gpt-oss-20b"
     provider_name: str = "groq"
 
     def __post_init__(self) -> None:
@@ -82,27 +82,86 @@ class GroqAnswerGenerator:
     def answer(self, question: str, chunks: list[ChunkHit]) -> str:
         prompt = build_grounded_prompt(question, chunks)
         start = time.perf_counter()
+        tried_models: list[str] = []
         try:
-            response = self._client.chat.completions.create(
-                model=self.model_name,
-                temperature=0,
-                messages=[
-                    {
-                        "role": "system",
-                        "content": (
-                            "Answer only from the supplied document chunks. "
-                            f"If the chunks do not contain the answer, say: {UNKNOWN_ANSWER}"
-                        ),
-                    },
-                    {"role": "user", "content": prompt},
-                ],
-            )
+            response = self._complete(prompt, self.model_name)
+            tried_models.append(self.model_name)
         except Exception as exc:
-            raise GenerationError(
-                f"Groq answer call failed after {time.perf_counter() - start:.2f}s."
-            ) from exc
+            tried_models.append(self.model_name)
+            fallback_model = self._choose_fallback_model()
+            if fallback_model and fallback_model not in tried_models:
+                try:
+                    response = self._complete(prompt, fallback_model)
+                    self.model_name = fallback_model
+                except Exception as fallback_exc:
+                    raise GenerationError(
+                        "Groq answer call failed after "
+                        f"{time.perf_counter() - start:.2f}s. "
+                        f"Tried models: {', '.join(tried_models + [fallback_model])}. "
+                        f"Last error: {fallback_exc}"
+                    ) from fallback_exc
+            else:
+                raise GenerationError(
+                    "Groq answer call failed after "
+                    f"{time.perf_counter() - start:.2f}s: {exc}"
+                ) from exc
         content = response.choices[0].message.content or ""
         return content.strip() or UNKNOWN_ANSWER
+
+    def _complete(self, prompt: str, model_name: str):
+        options = {
+            "model": model_name,
+            "temperature": 0,
+            "messages": [
+                {
+                    "role": "system",
+                    "content": (
+                        "Answer only from the supplied document chunks. "
+                        f"If the chunks do not contain the answer, say: {UNKNOWN_ANSWER}"
+                    ),
+                },
+                {"role": "user", "content": prompt},
+            ],
+        }
+        if model_name.startswith("qwen/"):
+            options["reasoning_effort"] = "none"
+        return self._client.chat.completions.create(**options)
+
+    def _choose_fallback_model(self) -> str | None:
+        available_ids = self._available_model_ids()
+        preferred_models = [
+            "openai/gpt-oss-20b",
+            "openai/gpt-oss-120b",
+            "qwen/qwen3.8-27b",
+            "qwen/qwen3.6-27b",
+            "minimaxai/minimax-m2.7",
+            "groq/compound-mini",
+        ]
+        if available_ids:
+            available = set(available_ids)
+            for model_id in preferred_models:
+                if model_id in available:
+                    return model_id
+            for model_id in available_ids:
+                if not any(skip in model_id for skip in ("guard", "whisper", "tts", "audio")):
+                    return model_id
+            return None
+        return "openai/gpt-oss-20b"
+
+    def _available_model_ids(self) -> list[str]:
+        try:
+            response = self._client.models.list()
+        except Exception:
+            return []
+        models = getattr(response, "data", response)
+        model_ids: list[str] = []
+        for model in models:
+            model_id = getattr(model, "id", None)
+            if model_id is None and isinstance(model, dict):
+                model_id = model.get("id")
+            if model_id:
+                model_ids.append(model_id)
+        return model_ids
 
 
 @dataclass

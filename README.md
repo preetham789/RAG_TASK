@@ -11,7 +11,7 @@ The code avoids black-box RAG frameworks on purpose. The interesting pieces are 
 - Embed chunks with OpenAI (`text-embedding-3-small` by default) or deterministic local hash embeddings for offline tests.
 - Store vectors locally in `data/vector_store/index.json`.
 - Retrieve top-k chunks with cosine similarity.
-- Generate grounded answers with Groq (`llama-3.3-70b-versatile` by default), OpenAI, or a simple extractive fallback for offline demos.
+- Generate grounded answers with Groq (`openai/gpt-oss-20b` by default), OpenAI, or a simple extractive fallback for offline demos.
 - Run either as a FastAPI API or as a Streamlit app.
 - Return the answer, grounding status, source chunks, scores, and latency metrics.
 - Say `I don't know from the provided documents.` when retrieval is below the configured threshold or the answerer cannot ground the response.
@@ -37,7 +37,7 @@ For the Groq answer-generation path, set a Groq API key. Local embeddings are th
 $env:GROQ_API_KEY = "gsk_..."
 $env:RAG_EMBEDDING_PROVIDER = "local"
 $env:RAG_GENERATION_PROVIDER = "groq"
-$env:RAG_CHAT_MODEL = "llama-3.3-70b-versatile"
+$env:RAG_CHAT_MODEL = "openai/gpt-oss-20b"
 ```
 
 For the OpenAI embedding/generation path, set an OpenAI API key:

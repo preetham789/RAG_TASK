@@ -78,7 +78,7 @@ class Settings:
 
 def _default_chat_model(provider: str) -> str:
     if provider == "groq":
-        return "llama-3.3-70b-versatile"
+        return "openai/gpt-oss-20b"
     if provider == "openai":
         return "gpt-4.1-mini"
     return "token-overlap-sentences"

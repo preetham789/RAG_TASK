@@ -64,4 +64,3 @@ def _load_pdf(filename: str, content: bytes) -> list[LoadedPage]:
         raise
     except Exception as exc:
         raise DocumentLoadError(f"Could not read {filename} as a PDF.") from exc
-

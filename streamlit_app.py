@@ -55,7 +55,7 @@ def sidebar_settings() -> str:
             os.environ["GROQ_API_KEY"] = groq_key
         os.environ["RAG_CHAT_MODEL"] = st.sidebar.text_input(
             "Groq model",
-            value=os.getenv("RAG_CHAT_MODEL", "llama-3.3-70b-versatile"),
+            value=os.getenv("RAG_CHAT_MODEL", "openai/gpt-oss-20b"),
         )
     elif generation_provider == "openai":
         openai_key = st.sidebar.text_input(
@@ -148,7 +148,7 @@ def main() -> None:
 
     with right:
         st.subheader("Ask")
-        question = st.text_area("Question", placeholder="When is greenhouse basil watered?")
+        question = st.text_area("Question", placeholder="What is RAG?")
         ask = st.button("Answer", type="primary", disabled=not question.strip())
         if ask:
             try:
