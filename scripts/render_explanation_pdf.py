@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import re
 from pathlib import Path
 
@@ -11,7 +12,12 @@ from reportlab.pdfgen import canvas
 
 ROOT = Path(__file__).resolve().parents[1]
 INPUT = ROOT / "EXPLANATION.md"
-OUTPUT = ROOT / "output" / "pdf" / "explanation.pdf"
+OUTPUT = Path(
+    os.getenv(
+        "EXPLANATION_PDF_OUTPUT",
+        str(ROOT / "output" / "pdf" / "explanation.pdf"),
+    )
+)
 
 
 def parse_sections(markdown: str) -> tuple[str, list[tuple[str, str]]]:
@@ -84,9 +90,57 @@ def render() -> None:
     pdf.setFont("Helvetica", 8)
     pdf.setFillColor(colors.HexColor("#6B7280"))
     pdf.drawRightString(width - margin, margin - 18, "RAG QA explanation - one page")
-    pdf.save()
+    try:
+        pdf.save()
+    except PermissionError:
+        fallback = OUTPUT.with_name(f"{OUTPUT.stem}_updated{OUTPUT.suffix}")
+        pdf = canvas.Canvas(str(fallback), pagesize=letter)
+        _render_page(pdf, title, sections)
+        pdf.save()
+        print(fallback)
+        return
+
+    print(OUTPUT)
+
+
+def _render_page(pdf: canvas.Canvas, title: str, sections: list[tuple[str, str]]) -> None:
+    width, height = letter
+    margin = 54
+    y = height - margin
+
+    pdf.setFillColor(colors.HexColor("#111827"))
+    pdf.setFont("Helvetica-Bold", 18)
+    pdf.drawString(margin, y, title)
+    y -= 28
+
+    pdf.setStrokeColor(colors.HexColor("#D1D5DB"))
+    pdf.line(margin, y, width - margin, y)
+    y -= 24
+
+    body_font = "Helvetica"
+    body_size = 10
+    line_height = 14
+    max_width = width - (margin * 2)
+
+    for heading, body in sections:
+        pdf.setFillColor(colors.HexColor("#111827"))
+        pdf.setFont("Helvetica-Bold", 11)
+        pdf.drawString(margin, y, f"{heading}.")
+        y -= 16
+
+        pdf.setFillColor(colors.HexColor("#1F2937"))
+        pdf.setFont(body_font, body_size)
+        for line in wrap_text(body, body_font, body_size, max_width):
+            if y < margin + 30:
+                raise RuntimeError("Explanation text did not fit on one page.")
+            pdf.drawString(margin, y, line)
+            y -= line_height
+        y -= 10
+
+    pdf.setFont("Helvetica", 8)
+    pdf.setFillColor(colors.HexColor("#6B7280"))
+    pdf.drawRightString(width - margin, margin - 18, "RAG QA explanation - one page")
 
 
 if __name__ == "__main__":
     render()
-    print(OUTPUT)

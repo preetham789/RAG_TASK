@@ -11,7 +11,8 @@ The code avoids black-box RAG frameworks on purpose. The interesting pieces are 
 - Embed chunks with OpenAI (`text-embedding-3-small` by default) or deterministic local hash embeddings for offline tests.
 - Store vectors locally in `data/vector_store/index.json`.
 - Retrieve top-k chunks with cosine similarity.
-- Generate grounded answers with OpenAI (`gpt-4.1-mini` by default) or a simple extractive fallback for offline demos.
+- Generate grounded answers with Groq (`llama-3.3-70b-versatile` by default), OpenAI, or a simple extractive fallback for offline demos.
+- Run either as a FastAPI API or as a Streamlit app.
 - Return the answer, grounding status, source chunks, scores, and latency metrics.
 - Say `I don't know from the provided documents.` when retrieval is below the configured threshold or the answerer cannot ground the response.
 
@@ -30,7 +31,16 @@ python -m venv .venv
 pip install -r requirements.txt
 ```
 
-For the intended AI path, set an OpenAI API key:
+For the Groq answer-generation path, set a Groq API key. Local embeddings are the default so you can use Groq without needing a separate embedding API:
+
+```powershell
+$env:GROQ_API_KEY = "gsk_..."
+$env:RAG_EMBEDDING_PROVIDER = "local"
+$env:RAG_GENERATION_PROVIDER = "groq"
+$env:RAG_CHAT_MODEL = "llama-3.3-70b-versatile"
+```
+
+For the OpenAI embedding/generation path, set an OpenAI API key:
 
 ```powershell
 $env:OPENAI_API_KEY = "sk-..."
@@ -52,6 +62,12 @@ uvicorn app.main:app --reload
 ```
 
 Open docs at `http://127.0.0.1:8000/docs`.
+
+Start the Streamlit app:
+
+```powershell
+streamlit run streamlit_app.py
+```
 
 ## Usage
 
@@ -134,4 +150,3 @@ For the 3-5 minute video:
 3. Ask a question whose answer is absent and show the honest unknown response.
 4. Walk through `app/chunking.py` and `app/rag.py`.
 5. Show `prompts/grounded_answer_prompt.txt` as the prompt used for grounded answering.
-

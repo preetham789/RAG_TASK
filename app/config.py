@@ -40,12 +40,18 @@ class Settings:
 
     @classmethod
     def from_env(cls) -> "Settings":
-        has_key = bool(os.getenv("OPENAI_API_KEY"))
+        has_openai_key = bool(os.getenv("OPENAI_API_KEY"))
+        has_groq_key = bool(os.getenv("GROQ_API_KEY"))
         embedding_provider = os.getenv(
-            "RAG_EMBEDDING_PROVIDER", "openai" if has_key else "local"
+            "RAG_EMBEDDING_PROVIDER", "openai" if has_openai_key else "local"
         ).lower()
+        default_generation_provider = "extractive"
+        if has_groq_key:
+            default_generation_provider = "groq"
+        elif has_openai_key:
+            default_generation_provider = "openai"
         generation_provider = os.getenv(
-            "RAG_GENERATION_PROVIDER", "openai" if has_key else "extractive"
+            "RAG_GENERATION_PROVIDER", default_generation_provider
         ).lower()
         chunk_size = _env_int("RAG_CHUNK_SIZE", 900)
         chunk_overlap = _env_int("RAG_CHUNK_OVERLAP", 150)
@@ -61,7 +67,7 @@ class Settings:
             embedding_model=os.getenv(
                 "RAG_EMBEDDING_MODEL", "text-embedding-3-small"
             ),
-            chat_model=os.getenv("RAG_CHAT_MODEL", "gpt-4.1-mini"),
+            chat_model=os.getenv("RAG_CHAT_MODEL", _default_chat_model(generation_provider)),
             chunk_size=chunk_size,
             chunk_overlap=chunk_overlap,
             default_top_k=_env_int("RAG_TOP_K", 4),
@@ -69,3 +75,10 @@ class Settings:
             local_embedding_dimensions=_env_int("RAG_LOCAL_EMBEDDING_DIMENSIONS", 384),
         )
 
+
+def _default_chat_model(provider: str) -> str:
+    if provider == "groq":
+        return "llama-3.3-70b-versatile"
+    if provider == "openai":
+        return "gpt-4.1-mini"
+    return "token-overlap-sentences"

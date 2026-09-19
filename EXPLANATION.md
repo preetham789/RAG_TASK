@@ -6,4 +6,4 @@
 
 **Metric tracked.** I tracked request latency in the API response: embedding, retrieval, generation, and total time. In a local FastAPI smoke test, ingest took 3.75 ms and a grounded query took 0.85 ms total, with retrieval at 0.25 ms. That showed the local JSON vector store is fine for small assignments. The expensive part will be external API calls once OpenAI mode is enabled, so the code batches document embeddings.
 
-**Not finished / next.** I did not add OCR for scanned PDFs, a frontend, auth, deployment, or a serious evaluation dataset. Next I would add a small labeled retrieval eval set, tune the similarity threshold against that set, add citation verification, and add OCR only if scanned documents are in scope.
+**Not finished / next.** I added a small Streamlit UI for demos, but did not add OCR for scanned PDFs, auth, deployment, or a serious evaluation dataset. Next I would add a small labeled retrieval eval set, tune the similarity threshold against that set, add citation verification, and add OCR only if scanned documents are in scope.

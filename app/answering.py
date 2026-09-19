@@ -66,6 +66,46 @@ class OpenAIAnswerGenerator:
 
 
 @dataclass
+class GroqAnswerGenerator:
+    model_name: str = "llama-3.3-70b-versatile"
+    provider_name: str = "groq"
+
+    def __post_init__(self) -> None:
+        if not os.getenv("GROQ_API_KEY"):
+            raise GenerationError("GROQ_API_KEY is required for Groq generation.")
+        try:
+            from groq import Groq
+        except ImportError as exc:
+            raise GenerationError("Groq generation requires the groq package.") from exc
+        self._client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+
+    def answer(self, question: str, chunks: list[ChunkHit]) -> str:
+        prompt = build_grounded_prompt(question, chunks)
+        start = time.perf_counter()
+        try:
+            response = self._client.chat.completions.create(
+                model=self.model_name,
+                temperature=0,
+                messages=[
+                    {
+                        "role": "system",
+                        "content": (
+                            "Answer only from the supplied document chunks. "
+                            f"If the chunks do not contain the answer, say: {UNKNOWN_ANSWER}"
+                        ),
+                    },
+                    {"role": "user", "content": prompt},
+                ],
+            )
+        except Exception as exc:
+            raise GenerationError(
+                f"Groq answer call failed after {time.perf_counter() - start:.2f}s."
+            ) from exc
+        content = response.choices[0].message.content or ""
+        return content.strip() or UNKNOWN_ANSWER
+
+
+@dataclass
 class ExtractiveAnswerGenerator:
     provider_name: str = "extractive"
     model_name: str = "token-overlap-sentences"
@@ -122,6 +162,8 @@ def split_sentences(text: str) -> list[str]:
 
 
 def create_answer_generator(provider: str, model_name: str) -> AnswerGenerator:
+    if provider == "groq":
+        return GroqAnswerGenerator(model_name=model_name)
     if provider == "openai":
         return OpenAIAnswerGenerator(model_name=model_name)
     if provider == "extractive":
@@ -154,4 +196,3 @@ STOPWORDS = {
     "you",
     "your",
 }
-
