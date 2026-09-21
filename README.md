@@ -1,29 +1,56 @@
 # Transparent RAG Question Answering
 
-This is a small RAG question-answering system. A user uploads PDF or TXT reference documents, the app chunks and embeds them, stores vectors in a local JSON index, retrieves relevant chunks for a question, and answers only from those chunks.
+Transparent RAG Question Answering is a Python application for answering questions from uploaded reference documents. It accepts PDF and TXT files, splits document text into searchable chunks, embeds those chunks, retrieves the most relevant context for a question, and generates an answer grounded in the retrieved material.
 
-The code avoids black-box RAG frameworks on purpose. The interesting pieces are visible in `app/chunking.py`, `app/embeddings.py`, `app/vector_store.py`, and `app/answering.py`.
+The project is intentionally lightweight and inspectable. It uses explicit document loading, chunking, embedding, vector search, and answer-generation modules instead of hiding the core retrieval flow inside a large RAG framework.
 
-## What Works
+## Features
 
-- Upload `.txt`, text-based `.pdf`, and scanned/image-only `.pdf` documents.
-- Chunk documents with a configurable character window and overlap.
-- Embed chunks with OpenAI (`text-embedding-3-small` by default) or deterministic local hash embeddings for offline tests.
-- Store vectors locally in `data/vector_store/index.json`.
-- Retrieve top-k chunks with cosine similarity.
-- Generate grounded answers with Groq (`openai/gpt-oss-20b` by default), OpenAI, or a simple extractive fallback for offline demos.
-- Run either as a FastAPI API or as a Streamlit app.
-- Return the answer, grounding status, source chunks, scores, and latency metrics.
-- Say `I don't know from the provided documents.` when retrieval is below the configured threshold or the answerer cannot ground the response.
+- Upload TXT files, text-based PDFs, and scanned/image-only PDFs.
+- Extract text from regular PDFs with `pypdf`.
+- OCR scanned PDFs with Groq vision OCR or local Tesseract OCR.
+- Chunk documents with configurable chunk size and overlap.
+- Embed chunks with OpenAI embeddings or deterministic local hash embeddings.
+- Store embeddings in a local JSON vector store.
+- Retrieve relevant chunks with cosine similarity.
+- Generate grounded answers with Groq, OpenAI, or a local extractive fallback.
+- Return retrieved chunks, source metadata, similarity scores, grounding status, and latency metrics.
+- Respond with `I don't know from the provided documents.` when the retrieved material does not support an answer.
+- Run as either a FastAPI service or a Streamlit app.
 
-## Current Limits
+## Tech Stack
 
-- OCR quality depends on scan quality.
-- Local OCR needs Tesseract installed on the machine. Without Tesseract, scanned PDF OCR uses Groq when `GROQ_API_KEY` is configured.
-- Large scanned PDFs can be slow or costly because OCR may process every page.
-- No authentication, deployment, or hosted database.
-- No robust citation verifier beyond returning the retrieved chunks and instructing the answerer to cite chunk ids.
-- Retrieval quality was checked with a tiny smoke set, not a full evaluation suite.
+- Python
+- FastAPI
+- Streamlit
+- Pydantic
+- Groq API
+- OpenAI API
+- pypdf
+- PyMuPDF
+- pytesseract
+- NumPy
+- pytest
+
+## Project Structure
+
+```text
+app/
+  answering.py        Answer generation with Groq, OpenAI, or extractive fallback
+  chunking.py         Text normalization and overlapping chunk creation
+  config.py           Environment-based runtime settings
+  document_loader.py  TXT, PDF, and OCR document loading
+  embeddings.py       OpenAI and local hash embedding clients
+  main.py             FastAPI routes
+  models.py           Pydantic request/response models
+  rag.py              Ingestion and query orchestration
+  vector_store.py     Local JSON vector store and cosine search
+
+streamlit_app.py      Streamlit user interface
+requirements.txt      Python dependencies
+sample_documents/     Sample input documents
+tests/                Unit tests
+```
 
 ## Setup
 
@@ -33,7 +60,11 @@ python -m venv .venv
 pip install -r requirements.txt
 ```
 
-For the Groq answer-generation path, set a Groq API key. Local embeddings are the default so you can use Groq without needing a separate embedding API:
+## Configuration
+
+The app is configured through environment variables.
+
+Groq answer generation with local embeddings:
 
 ```powershell
 $env:GROQ_API_KEY = "gsk_..."
@@ -42,7 +73,7 @@ $env:RAG_GENERATION_PROVIDER = "groq"
 $env:RAG_CHAT_MODEL = "openai/gpt-oss-20b"
 ```
 
-For the OpenAI embedding/generation path, set an OpenAI API key:
+OpenAI embeddings and OpenAI answer generation:
 
 ```powershell
 $env:OPENAI_API_KEY = "sk-..."
@@ -50,45 +81,59 @@ $env:RAG_EMBEDDING_PROVIDER = "openai"
 $env:RAG_GENERATION_PROVIDER = "openai"
 ```
 
-For offline development without an API key:
+Offline local mode:
 
 ```powershell
 $env:RAG_EMBEDDING_PROVIDER = "local"
 $env:RAG_GENERATION_PROVIDER = "extractive"
 ```
 
-Start the API:
-
-```powershell
-uvicorn app.main:app --reload
-```
-
-Open docs at `http://127.0.0.1:8000/docs`.
-
-Start the Streamlit app:
-
-```powershell
-streamlit run streamlit_app.py
-```
-
-Open Streamlit at `http://localhost:8501`.
-
-For scanned PDFs, use Groq OCR:
+Scanned PDF OCR with Groq:
 
 ```powershell
 $env:GROQ_API_KEY = "gsk_..."
 $env:RAG_OCR_PROVIDER = "groq"
 ```
 
-Or install local Tesseract OCR and use:
+Scanned PDF OCR with local Tesseract:
 
 ```powershell
 $env:RAG_OCR_PROVIDER = "tesseract"
 ```
 
-## Usage
+## Run The Streamlit App
 
-Upload a TXT file:
+```powershell
+streamlit run streamlit_app.py
+```
+
+Open:
+
+```text
+http://localhost:8501
+```
+
+If port `8501` is already in use:
+
+```powershell
+streamlit run streamlit_app.py --server.port 8502
+```
+
+## Run The FastAPI Service
+
+```powershell
+uvicorn app.main:app --reload
+```
+
+Open the API docs:
+
+```text
+http://127.0.0.1:8000/docs
+```
+
+## API Usage
+
+Upload documents:
 
 ```powershell
 curl.exe -X POST http://127.0.0.1:8000/documents `
@@ -103,7 +148,7 @@ curl.exe -X POST http://127.0.0.1:8000/query `
   -d "{\"question\":\"When is greenhouse basil watered?\",\"top_k\":4,\"min_score\":0.18}"
 ```
 
-Ask something not in the documents:
+Ask a question that is not answered by the documents:
 
 ```powershell
 curl.exe -X POST http://127.0.0.1:8000/query `
@@ -111,21 +156,31 @@ curl.exe -X POST http://127.0.0.1:8000/query `
   -d "{\"question\":\"Who won the 2026 World Cup?\",\"top_k\":4,\"min_score\":0.18}"
 ```
 
-Reset the local index:
+Reset the local vector store:
 
 ```powershell
 curl.exe -X DELETE http://127.0.0.1:8000/documents
 ```
 
-## API Shape
+## API Endpoints
 
-`POST /documents`
+### `POST /documents`
 
-- Form-data field: `files`
-- Accepts one or more `.txt` or `.pdf` files.
-- Returns chunk count, chunking settings, embedding provider/model, and ingest latency.
+Uploads one or more `.txt` or `.pdf` documents.
 
-`POST /query`
+Response includes:
+
+- Number of documents ingested
+- Number of chunks added
+- Chunk size and overlap
+- Embedding provider and model
+- Ingestion latency
+
+### `POST /query`
+
+Answers a question using retrieved document chunks.
+
+Example request:
 
 ```json
 {
@@ -135,25 +190,47 @@ curl.exe -X DELETE http://127.0.0.1:8000/documents
 }
 ```
 
-Returns:
+Response includes:
 
-- `answer`
-- `grounded`
-- `retrieved_chunks` with `chunk_id`, source metadata, text, and score
-- latency metrics for embedding, retrieval, generation, and total request time
+- Answer
+- Grounding status
+- Retrieved chunks
+- Source metadata
+- Similarity scores
+- Latency metrics
+
+### `GET /chunks`
+
+Returns the number of stored chunks and source document names.
+
+### `DELETE /documents`
+
+Clears the local vector store.
 
 ## Design Notes
 
-Chunking uses 900 characters with 150 characters of overlap. I chose character-based chunking because it is transparent, dependency-light, and easy to explain. The boundary finder tries sentence endings first so chunks usually end at a natural place, then falls back to spaces or a hard cut.
+Chunking uses a 900-character window with 150 characters of overlap by default. This keeps chunks focused while preserving enough surrounding context for facts that appear near chunk boundaries.
 
-The vector store is a JSON file instead of a database because the assignment does not require production infrastructure. This keeps setup simple and makes it easy to inspect stored chunks.
+The vector store is a local JSON file at `data/vector_store/index.json`. This keeps the project easy to run locally and makes stored chunks inspectable without a separate database.
 
-The default retrieval threshold is `0.18`. With OpenAI embeddings, that keeps loosely related chunks out while still allowing paraphrased questions to match. It is configurable per request because real document sets need tuning.
+Retrieval uses cosine similarity over stored embeddings. The query endpoint accepts `top_k` and `min_score` so retrieval strictness can be tuned per request.
 
-## Tests
+Answer generation is grounded by passing only retrieved chunks to the model. If retrieval does not produce a sufficiently relevant chunk, the app returns an explicit unknown answer instead of guessing.
+
+## Testing
 
 ```powershell
 pytest
 ```
 
-The tests use local hash embeddings and the extractive answerer so they run without network calls.
+The test suite uses local hash embeddings and the extractive answerer so it can run without external API calls.
+
+## Limitations
+
+- OCR quality depends on scan quality and page layout.
+- Large scanned PDFs can take time to process because each page may require OCR.
+- Local Tesseract OCR requires Tesseract to be installed separately on the machine.
+- Groq OCR and model-based answer generation require a valid `GROQ_API_KEY`.
+- OpenAI embeddings and OpenAI answer generation require a valid `OPENAI_API_KEY`.
+- The local JSON vector store is intended for small local workloads, not large production-scale indexes.
+- Citation verification is limited to returning the chunks used for retrieval.

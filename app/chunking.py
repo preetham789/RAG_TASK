@@ -11,6 +11,7 @@ WHITESPACE_RE = re.compile(r"\s+")
 
 
 def normalize_text(text: str) -> str:
+    text = text.encode("utf-8",errors = "replace").decode("utf-8")
     return WHITESPACE_RE.sub(" ", text).strip()
 
 
