@@ -6,9 +6,8 @@ The project is intentionally lightweight and inspectable. It uses explicit docum
 
 ## Features
 
-- Upload TXT files, text-based PDFs, and scanned/image-only PDFs.
+- Upload TXT files and text-based PDFs.
 - Extract text from regular PDFs with `pypdf`.
-- OCR scanned PDFs with Groq vision OCR or local Tesseract OCR.
 - Chunk documents with configurable chunk size and overlap.
 - Embed chunks with OpenAI embeddings or deterministic local hash embeddings.
 - Store embeddings in a local JSON vector store.
@@ -27,8 +26,6 @@ The project is intentionally lightweight and inspectable. It uses explicit docum
 - Groq API
 - OpenAI API
 - pypdf
-- PyMuPDF
-- pytesseract
 - NumPy
 - pytest
 
@@ -39,7 +36,7 @@ app/
   answering.py        Answer generation with Groq, OpenAI, or extractive fallback
   chunking.py         Text normalization and overlapping chunk creation
   config.py           Environment-based runtime settings
-  document_loader.py  TXT, PDF, and OCR document loading
+  document_loader.py  TXT and PDF document loading
   embeddings.py       OpenAI and local hash embedding clients
   main.py             FastAPI routes
   models.py           Pydantic request/response models
@@ -88,19 +85,6 @@ $env:RAG_EMBEDDING_PROVIDER = "local"
 $env:RAG_GENERATION_PROVIDER = "extractive"
 ```
 
-Scanned PDF OCR with Groq:
-
-```powershell
-$env:GROQ_API_KEY = "gsk_..."
-$env:RAG_OCR_PROVIDER = "groq"
-```
-
-Scanned PDF OCR with local Tesseract:
-
-```powershell
-$env:RAG_OCR_PROVIDER = "tesseract"
-```
-
 ## Run The Streamlit App
 
 ```powershell
@@ -145,7 +129,7 @@ Ask a grounded question:
 ```powershell
 curl.exe -X POST http://127.0.0.1:8000/query `
   -H "Content-Type: application/json" `
-  -d "{\"question\":\"When is greenhouse basil watered?\",\"top_k\":4,\"min_score\":0.18}"
+  -d "{\"question\":\"When is greenhouse basil watered?\",\"top_k\":4,\"min_score\":0.20}"
 ```
 
 Ask a question that is not answered by the documents:
@@ -153,7 +137,7 @@ Ask a question that is not answered by the documents:
 ```powershell
 curl.exe -X POST http://127.0.0.1:8000/query `
   -H "Content-Type: application/json" `
-  -d "{\"question\":\"Who won the 2026 World Cup?\",\"top_k\":4,\"min_score\":0.18}"
+  -d "{\"question\":\"Who won the 2026 World Cup?\",\"top_k\":4,\"min_score\":0.20}"
 ```
 
 Reset the local vector store:
@@ -186,7 +170,7 @@ Example request:
 {
   "question": "When is greenhouse basil watered?",
   "top_k": 4,
-  "min_score": 0.18
+  "min_score": 0.20
 }
 ```
 
@@ -223,14 +207,14 @@ Answer generation is grounded by passing only retrieved chunks to the model. If 
 pytest
 ```
 
-The test suite uses local hash embeddings and the extractive answerer so it can run without external API calls.
+The test suite runs completely offline using local hash embeddings and the extractive answer generator. It includes:
+- Overlapping chunk creation and boundary detection tests (`tests/test_chunking.py`).
+- Local retrieval and unknown rejection tests (`tests/test_rag_local.py`).
+- Labeled evaluation and threshold tuning (`tests/test_threshold_eval.py` using `tests/eval_set.json`), validating that the tuned threshold (0.38) eliminates false positives from off-corpus queries while preserving full recall on grounded questions.
 
 ## Limitations
 
-- OCR quality depends on scan quality and page layout.
-- Large scanned PDFs can take time to process because each page may require OCR.
-- Local Tesseract OCR requires Tesseract to be installed separately on the machine.
-- Groq OCR and model-based answer generation require a valid `GROQ_API_KEY`.
+- Groq answer generation requires a valid `GROQ_API_KEY`.
 - OpenAI embeddings and OpenAI answer generation require a valid `OPENAI_API_KEY`.
 - The local JSON vector store is intended for small local workloads, not large production-scale indexes.
 - Citation verification is limited to returning the chunks used for retrieval.

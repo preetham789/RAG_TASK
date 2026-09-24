@@ -8,5 +8,6 @@ htmlcov/
 data/vector_store/*.json
 !data/vector_store/.gitkeep
 tmp/
+.pytest_temp/
 output/pdf/*.png
 

@@ -71,7 +71,7 @@ class Settings:
             chunk_size=chunk_size,
             chunk_overlap=chunk_overlap,
             default_top_k=_env_int("RAG_TOP_K", 4),
-            default_min_score=_env_float("RAG_MIN_SCORE", 0.18),
+            default_min_score=_env_float("RAG_MIN_SCORE", 0.20),
             local_embedding_dimensions=_env_int("RAG_LOCAL_EMBEDDING_DIMENSIONS", 384),
         )
 

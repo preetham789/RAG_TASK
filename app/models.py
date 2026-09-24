@@ -35,7 +35,7 @@ class IngestResponse(BaseModel):
 class QueryRequest(BaseModel):
     question: str = Field(min_length=1, max_length=2000)
     top_k: int = Field(default=4, ge=1, le=10)
-    min_score: float = Field(default=0.18, ge=0.0, le=1.0)
+    min_score: float = Field(default=0.20, ge=0.0, le=1.0)
 
     @field_validator("question")
     @classmethod

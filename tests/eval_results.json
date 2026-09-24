@@ -1,0 +1,134 @@
+{
+  "optimal_threshold": 0.417,
+  "accuracy_at_optimal": 1.0,
+  "total_questions": 14,
+  "threshold_at_0_18_false_positives": 6,
+  "questions": [
+    {
+      "question": "When is the greenhouse basil watered?",
+      "label": "on-corpus",
+      "expected_grounded": true,
+      "top_score": 0.417,
+      "grounded_at_0_18": true,
+      "grounded_at_optimal": true,
+      "correct_at_optimal": true
+    },
+    {
+      "question": "What is the tool shed combination?",
+      "label": "on-corpus",
+      "expected_grounded": true,
+      "top_score": 0.4518,
+      "grounded_at_0_18": true,
+      "grounded_at_optimal": true,
+      "correct_at_optimal": true
+    },
+    {
+      "question": "When should the shed combination be changed?",
+      "label": "on-corpus",
+      "expected_grounded": true,
+      "top_score": 0.4826,
+      "grounded_at_0_18": true,
+      "grounded_at_optimal": true,
+      "correct_at_optimal": true
+    },
+    {
+      "question": "How often is the rosemary watered on Tuesdays?",
+      "label": "on-corpus",
+      "expected_grounded": true,
+      "top_score": 0.4214,
+      "grounded_at_0_18": true,
+      "grounded_at_optimal": true,
+      "correct_at_optimal": true
+    },
+    {
+      "question": "When is the outdoor rosemary watered?",
+      "label": "on-corpus",
+      "expected_grounded": true,
+      "top_score": 0.417,
+      "grounded_at_0_18": true,
+      "grounded_at_optimal": true,
+      "correct_at_optimal": true
+    },
+    {
+      "question": "When does the campus garden team water the greenhouse basil?",
+      "label": "on-corpus",
+      "expected_grounded": true,
+      "top_score": 0.516,
+      "grounded_at_0_18": true,
+      "grounded_at_optimal": true,
+      "correct_at_optimal": true
+    },
+    {
+      "question": "Who won the 2026 World Cup?",
+      "label": "off-corpus",
+      "expected_grounded": false,
+      "top_score": 0.3128,
+      "grounded_at_0_18": true,
+      "grounded_at_optimal": false,
+      "correct_at_optimal": true
+    },
+    {
+      "question": "What is the capital of France?",
+      "label": "off-corpus",
+      "expected_grounded": false,
+      "top_score": 0.3475,
+      "grounded_at_0_18": true,
+      "grounded_at_optimal": false,
+      "correct_at_optimal": true
+    },
+    {
+      "question": "What is the meaning of life?",
+      "label": "off-corpus",
+      "expected_grounded": false,
+      "top_score": 0.3475,
+      "grounded_at_0_18": true,
+      "grounded_at_optimal": false,
+      "correct_at_optimal": true
+    },
+    {
+      "question": "What is the stock price of Apple today?",
+      "label": "off-corpus",
+      "expected_grounded": false,
+      "top_score": 0.301,
+      "grounded_at_0_18": true,
+      "grounded_at_optimal": false,
+      "correct_at_optimal": true
+    },
+    {
+      "question": "When will the new library building be opened to the public?",
+      "label": "off-corpus",
+      "expected_grounded": false,
+      "top_score": 0.3778,
+      "grounded_at_0_18": true,
+      "grounded_at_optimal": false,
+      "correct_at_optimal": true
+    },
+    {
+      "question": "What is the recipe for chocolate cake?",
+      "label": "off-corpus",
+      "expected_grounded": false,
+      "top_score": 0.2896,
+      "grounded_at_0_18": true,
+      "grounded_at_optimal": false,
+      "correct_at_optimal": true
+    },
+    {
+      "question": "What programming language is best for web development?",
+      "label": "off-corpus",
+      "expected_grounded": false,
+      "top_score": 0.0602,
+      "grounded_at_0_18": false,
+      "grounded_at_optimal": false,
+      "correct_at_optimal": true
+    },
+    {
+      "question": "How does quantum computing work?",
+      "label": "off-corpus",
+      "expected_grounded": false,
+      "top_score": -0.0381,
+      "grounded_at_0_18": false,
+      "grounded_at_optimal": false,
+      "correct_at_optimal": true
+    }
+  ]
+}

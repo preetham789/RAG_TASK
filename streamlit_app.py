@@ -92,7 +92,7 @@ def sidebar_settings() -> str:
             "Minimum retrieval score",
             0.0,
             1.0,
-            float(os.getenv("RAG_MIN_SCORE", "0.18")),
+            float(os.getenv("RAG_MIN_SCORE", "0.20")),
             0.01,
         )
     )

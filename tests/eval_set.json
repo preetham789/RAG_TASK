@@ -1,0 +1,78 @@
+[
+  {
+    "question": "When is the greenhouse basil watered?",
+    "expected_grounded": true,
+    "expected_answer_contains": "Monday",
+    "label": "on-corpus"
+  },
+  {
+    "question": "What is the tool shed combination?",
+    "expected_grounded": true,
+    "expected_answer_contains": "24-18-30",
+    "label": "on-corpus"
+  },
+  {
+    "question": "When should the shed combination be changed?",
+    "expected_grounded": true,
+    "expected_answer_contains": "volunteer",
+    "label": "on-corpus"
+  },
+  {
+    "question": "How often is the rosemary watered on Tuesdays?",
+    "expected_grounded": true,
+    "expected_answer_contains": "Tuesdays",
+    "label": "on-corpus"
+  },
+  {
+    "question": "When is the outdoor rosemary watered?",
+    "expected_grounded": true,
+    "expected_answer_contains": "Tuesdays",
+    "label": "on-corpus"
+  },
+  {
+    "question": "When does the campus garden team water the greenhouse basil?",
+    "expected_grounded": true,
+    "expected_answer_contains": "Monday",
+    "label": "on-corpus"
+  },
+  {
+    "question": "Who won the 2026 World Cup?",
+    "expected_grounded": false,
+    "label": "off-corpus"
+  },
+  {
+    "question": "What is the capital of France?",
+    "expected_grounded": false,
+    "label": "off-corpus"
+  },
+  {
+    "question": "What is the meaning of life?",
+    "expected_grounded": false,
+    "label": "off-corpus"
+  },
+  {
+    "question": "What is the stock price of Apple today?",
+    "expected_grounded": false,
+    "label": "off-corpus"
+  },
+  {
+    "question": "When will the new library building be opened to the public?",
+    "expected_grounded": false,
+    "label": "off-corpus"
+  },
+  {
+    "question": "What is the recipe for chocolate cake?",
+    "expected_grounded": false,
+    "label": "off-corpus"
+  },
+  {
+    "question": "What programming language is best for web development?",
+    "expected_grounded": false,
+    "label": "off-corpus"
+  },
+  {
+    "question": "How does quantum computing work?",
+    "expected_grounded": false,
+    "label": "off-corpus"
+  }
+]
